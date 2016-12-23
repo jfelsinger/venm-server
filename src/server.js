@@ -48,6 +48,11 @@ class VenmServer {
         require('./express-config')(this, this._app);
     }
 
+    /**
+     * Run a configuration function,
+     * supplying it the VENM server, the express app, and any configuration that
+     * was passed in on construction
+     */
     configure() {
         Array.prototype.forEach.call(arguments, (cb) => {
             debug('configure...');
@@ -59,6 +64,11 @@ class VenmServer {
         return this;
     }
 
+    /**
+     * Setup the routes for handling various errors
+     * - This is similar to the configuration setup, but this routing is
+     *   automatically applied last, right before serer start
+     */
     routeErrors() {
         Array.prototype.forEach.call(arguments, (router) => {
             debug('register error routes...');
@@ -70,6 +80,10 @@ class VenmServer {
         return this;
     }
 
+    /**
+     * Start the app running and register any error handling routes/config
+     * Returns a promise that is resolved once the server has finished starting
+     */
     start() {
         // Run error routing setup
         this.errorRouting.forEach((router) => {
@@ -100,6 +114,10 @@ class VenmServer {
 }
 
 
+/**
+ * Lets just complicate everything and make the outside interface weeeiiird
+ * This should probably just be removed
+ */
 function VenmServerFactory(config, ssl) {
     config.ssl = ssl;
 

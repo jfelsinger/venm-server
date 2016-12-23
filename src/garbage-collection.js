@@ -10,6 +10,9 @@ module.exports = VenmGarbageCollectionHandler;
  */
 const debug = require('debug')('venm-server:gc');
 
+// TODO:
+// Decide if this is even a remotely good idea...
+// It probably isn't, at least not for this whole core server thing.
 
 let isRunningGC = false;
 
