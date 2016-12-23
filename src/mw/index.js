@@ -5,6 +5,14 @@
  */
 module.exports = VenmMiddlewareHandler;
 
+// TODO:
+// We treat the VenmRoutes object here... as an object, where-as in `server.js`
+// we're treating the main object as a class.
+//
+// Things should be structured consistently throughout... especially since this
+// particuler bit of code makes use of an OO structure via references to this,
+// perhaps re-factor as a class?
+
 /**
  * Deps
  */

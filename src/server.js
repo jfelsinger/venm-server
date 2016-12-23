@@ -36,6 +36,9 @@ function VenmServerFactory(config, ssl) {
     let errorRouting = [];
     let server;
 
+    // TODO:
+    // I hate that this class is nested with a function,
+    // restructure please.
     class VenmServer {
         constructor() {
             this._config = config;
