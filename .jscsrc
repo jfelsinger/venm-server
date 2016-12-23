@@ -1,0 +1,78 @@
+{
+    "preset":"airbnb",
+
+    "validateIndentation": 4,
+    "maximumLineLength": {
+        "value": 120,
+        "allExcept": [
+            "regex",
+            "urlComments",
+            "functionSignature"
+        ]
+    },
+
+    "requireCamelCaseOrUpperCaseIdentifiers":{
+        "ignoreProperties":true
+    },
+
+    "requireTrailingComma":{
+        "ignoreSingleLine":true,
+        "ignoreSingleValue":true
+    },
+
+
+    "safeContextKeyword":["me"],
+
+    "requireAlignedMultilineParams":"firstParam",
+
+    "disallowMultipleVarDecl":null,
+    "disallowSpacesInsideParentheses":null,
+
+
+
+    "disallowMultipleLineBreaks":null,
+
+    "requirePaddingNewLinesAfterBlocks":null,
+    "disallowPaddingNewLinesAfterBlocks":null,
+
+    "disallowPaddingNewLinesAfterUseStrict":null,
+    "disallowPaddingNewLinesBeforeExport":null,
+    "requirePaddingNewLinesBeforeExport":null,
+
+    "requirePaddingNewLinesBeforeLineComments":null,
+    "disallowPaddingNewLinesBeforeLineComments":null,
+
+
+
+
+    "requireSpacesInFunctionDeclaration": {
+        "beforeOpeningCurlyBrace": true
+    },
+    "disallowSpacesInFunctionDeclaration": {
+        "beforeOpeningRoundBrace": true
+    },
+
+    "requireSpacesInAnonymousFunctionExpression": {
+        "beforeOpeningCurlyBrace": true
+    },
+    "disallowSpacesInAnonymousFunctionExpression": {
+        "beforeOpeningRoundBrace": true
+    },
+
+    "requireSpaceAfterKeywords": [
+        "do",
+        "for",
+        "if",
+        "else",
+        "switch",
+        "case",
+        "try",
+        "while",
+        "with",
+        "return"
+    ],
+    "disallowSpaceAfterKeywords": [
+        "typeof",
+        "catch"
+    ]
+}
