@@ -19,92 +19,90 @@ const express = require('express'),
 
 // Various Helpers
 const gcHelper = require('./garbage-collection'),
-      mwHelper = require('./mw'),
-      routeHelper = require('./routing');
+      MwHelper = require('./mw'),
+      RouteHelper = require('./routing');
 
 const env = process.env.NODE_ENV = process.env.NODE_ENV || 'dev';
-
 
 
 /**
  * Representation of VENM Server
  * @class VenmServer
  */
-function VenmServerFactory(config, ssl) {
-    let port = config.port;
-    let app = express();
-    let errorRouting = [];
-    let server;
+class VenmServer {
+    constructor(port, config, app) {
+        this._config = config;
+        this._app = app || express();
+        this._port = port;
 
-    // TODO:
-    // I hate that this class is nested with a function,
-    // restructure please.
-    class VenmServer {
-        constructor() {
-            this._config = config;
-            this._app = app;
+        this.gc = gcHelper(this);
+        this.mw = new MwHelper(this);
+        this.routes = new RouteHelper(this);
+        this.errorRouting = [];
 
-            this.gc = gcHelper(this);
-            this.mw = mwHelper(this);
-            this.routes = routeHelper(this);
+        // Aliases
+        this.middleware = this.mw;
+        this.routing = this.routes;
 
-            // Aliases
-            this.middleware = this.mw;
-            this.routing = this.routes;
-
-            // Configuration
-            require('./express-config')(this, app);
-        }
-
-        configure() {
-            Array.prototype.forEach.call(arguments, (cb) => {
-                debug('configure...');
-                if (typeof(cb) === 'function') {
-                    cb(this, app, this._config);
-                }
-            });
-
-            return this;
-        }
-
-        routeErrors() {
-            Array.prototype.forEach.call(arguments, (router) => {
-                debug('register error routes...');
-                if (typeof(router) === 'function') {
-                    errorRouting.push(router);
-                }
-            });
-
-            return this;
-        }
-
-        start() {
-            // Run error routing setup
-            errorRouting.forEach((router) => {
-                router(app, this._config);
-            });
-
-            return new BPromise((res, rej) => {
-                var callback = (err) => {
-                    if (err) return rej(err);
-
-                    debug('Express application started on port `' + chalk.cyan('%s') + '`', port);
-                    debug('Environment: `' + chalk.cyan('%s') + '`', env);
-                    debug('Node Version: `' + chalk.cyan('%s') + '`', process.version);
-
-                    res(server);
-                };
-
-                if (this._config.isHttps) {
-                    server = https.createServer(ssl, app);
-                } else {
-                    server = http.createServer(app);
-                }
-
-                server.listen(port, callback);
-            });
-        }
+        // Configuration
+        require('./express-config')(this, this._app);
     }
 
-    return (new VenmServer());
+    configure() {
+        Array.prototype.forEach.call(arguments, (cb) => {
+            debug('configure...');
+            if (typeof(cb) === 'function') {
+                cb(this, this._app, this._config);
+            }
+        });
+
+        return this;
+    }
+
+    routeErrors() {
+        Array.prototype.forEach.call(arguments, (router) => {
+            debug('register error routes...');
+            if (typeof(router) === 'function') {
+                this.errorRouting.push(router);
+            }
+        });
+
+        return this;
+    }
+
+    start() {
+        // Run error routing setup
+        this.errorRouting.forEach((router) => {
+            router(this._app, this._config);
+        });
+
+        return new BPromise((res, rej) => {
+            let server;
+            let callback = (err) => {
+                if (err) return rej(err);
+
+                debug('Express application started on port `' + chalk.cyan('%s') + '`', this._port);
+                debug('Environment: `' + chalk.cyan('%s') + '`', env);
+                debug('Node Version: `' + chalk.cyan('%s') + '`', process.version);
+
+                res(server);
+            };
+
+            if (this._config.isHttps) {
+                server = https.createServer(this._config.ssl, this._app);
+            } else {
+                server = http.createServer(this._app);
+            }
+
+            server.listen(this._port, callback);
+        });
+    }
+}
+
+
+function VenmServerFactory(config, ssl) {
+    config.ssl = ssl;
+
+    let port = config.port;
+    return (new VenmServer(port, config));
 }

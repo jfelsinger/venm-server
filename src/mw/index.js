@@ -1,17 +1,7 @@
 'use strict';
 
-/**
- * Exports
- */
-module.exports = VenmMiddlewareHandler;
-
 // TODO:
-// We treat the VenmRoutes object here... as an object, where-as in `server.js`
-// we're treating the main object as a class.
-//
-// Things should be structured consistently throughout... especially since this
-// particuler bit of code makes use of an OO structure via references to this,
-// perhaps re-factor as a class?
+// Perhaps phase-out compose and/or mwflow?
 
 /**
  * Deps
@@ -22,16 +12,18 @@ const R = require('ramda');
 
 
 /**
- * ...
+ * Provide extra functionality for handling MWs
  */
-function VenmMiddlewareHandler(venmServer) {
-    let registeredMW = {};
-    let VenmMW = {};
+class VenmMiddlewareHandler {
+    constructor(venmServer) {
+        this.server = venmServer;
+        this.registeredMW = {};
+    }
 
     /**
      * Register a MW for later use
      */
-    VenmMW.register = function registerVenmMWs() {
+    register() {
         let name, mw;
 
         if (arguments.length === 2) {
@@ -46,16 +38,16 @@ function VenmMiddlewareHandler(venmServer) {
             throw new Error('name required to register middlware');
         }
 
-        registeredMW[name] = mw;
+        this.registeredMW[name] = mw;
 
-        return venmServer;
-    };
+        return this;
+    }
 
     /**
      * Get a MW, or combination of MW,
      * to be used in a route
      */
-    VenmMW.getMWs = function getVenmMWsArray() {
+    getMWs() {
         let args = Array.prototype.slice.call(arguments);
         args = R.flatten(args);
 
@@ -63,57 +55,58 @@ function VenmMiddlewareHandler(venmServer) {
             if (typeof(name) === 'function')
                 return name;
             else
-                return registeredMW[name];
+                return this.registeredMW[name];
         };
         let mws = R.map(fn, args);
 
         return mws;
-    };
+    }
 
     /**
      * Get a MW or combination of MW to be used in a route,
      * executed in parallel
      */
-    VenmMW.get = function getVenmMW() {
+    get() {
         let args = Array.prototype.slice.call(arguments);
-        let mws = VenmMW.getMWs(args);
+        let mws = this.getMWs(args);
 
         if (mws.length < 2) {
             return mws[0];
         } // else:
 
         return mwflow.parallel.apply(mwflow, mws);
-    };
+    }
 
     /**
      * Get a MW or combination of MW to be used in a route,
      * but executed in series
      */
-    VenmMW.getSeries = function getVenmMWInSeries() {
+    getSeries() {
         let args = Array.prototype.slice.call(arguments);
-        let mws = VenmMW.getMWs(args);
+        let mws = this.getMWs(args);
 
         if (mws.length < 2) {
             return mws[0];
         } // else:
 
         return compose(mws);
-    };
+    }
 
     /**
-     * Register MW for a router
+     * Register MW for an express router
      * - or-
      * Return a function that will register the given mw to a supplied router
      */
-    VenmMW.use = function useVenmMWs(/* router, ...mws */) {
+    use() {
         let args = Array.prototype.slice.call(arguments);
+
         if (typeof(args[0]) === 'object' && !Array.isArray(args[0])) {
             let router = args.shift();
-            let mw = VenmMW.get(args);
+            let mw = this.get(args);
             router.use(mw);
         } else {
 
-            let mw = VenmMW.get(args);
+            let mw = this.get(args);
             return function(router) {
                 let routerArgs = Array.prototype.slice.call(arguments, 1);
                 routerArgs = R.append(mw, routerArgs);
@@ -121,25 +114,25 @@ function VenmMiddlewareHandler(venmServer) {
             };
 
         }
-    };
+    }
 
     /**
      * Register MW for a router, but in series
      * - or-
      * Return a function that will register the given mw to a supplied router
      */
-    VenmMW.useSeries = function useVenmMWsInSeries(/* router, ...mws */) {
+    useSeries() {
         let args = Array.prototype.slice.call(arguments);
 
         if (typeof(args[0]) === 'object' && !Array.isArray(args[0])) {
 
             let router = args.shift();
-            let mw = VenmMW.getSeries(args);
+            let mw = this.getSeries(args);
             router.use(mw);
 
         } else {
 
-            let mw = VenmMW.get(args);
+            let mw = this.get(args);
             return function(router) {
                 let routerArgs = Array.prototype.slice.call(arguments, 1);
                 routerArgs = R.append(mw, routerArgs);
@@ -147,7 +140,12 @@ function VenmMiddlewareHandler(venmServer) {
             };
 
         }
-    };
-
-    return VenmMW;
+    }
 }
+
+
+
+/**
+ * Exports
+ */
+module.exports = VenmMiddlewareHandler;

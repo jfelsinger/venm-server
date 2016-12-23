@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * Exports
+ * Deps
  */
-module.exports = VenmRoutingHandler;
+const setupDefaultAccess = require('./setup-default-access');
 
 // TODO:
 // We treat the VenmRoutes object here... as an object, where-as in `server.js`
@@ -16,29 +16,37 @@ module.exports = VenmRoutingHandler;
 /**
  * ...
  */
-function VenmRoutingHandler(venmServer) {
-    let VenmRoutes = {};
+class VenmRoutingHandler {
+
+    constructor(venmServer) {
+        this.server = venmServer;
+        this.routes = {};
+    }
 
     /**
      * Register a route
      * @param {Function} route
      * @param {*} ...args - Optional args, as many as you want!
      */
-    VenmRoutes.register = function registerVenmRoute() {
+    register() {
         let args = Array.prototype.map.call(arguments, (arg) => arg);
         let route = args.shift();
 
-        args = [venmServer, venmServer._app, venmServer.db].concat(args);
+        args = [this.server, this.server._app, this.server.db].concat(args);
 
         route.apply(route, args);
 
         return this;
-    };
+    }
 
-    VenmRoutes.setupDefaultAccess = function setupDefaultVenmResultAccess() {
-        require('./setup-default-access')(venmServer._app);
+    setupDefaultAccess() {
+        setupDefaultAccess(this.server._app);
         return this;
-    };
-
-    return VenmRoutes;
+    }
 }
+
+
+/**
+ * Exports
+ */
+module.exports = VenmRoutingHandler;
